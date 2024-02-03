@@ -1,11 +1,15 @@
 #!/usr/bin/env sh
 
-if gem list --no-installed --exact --silent foreman; then
+if ! gem list foreman -i --silent; then
   echo "Installing foreman..."
   gem install foreman
 fi
 
-# Default to port 3000 if not specified
-export PORT="${PORT:-3000}"
-
-exec foreman start -f Procfile.dev "$@"
+# Switch between Procfiles to allow redis-server be installed as service
+if [ -n "$1" ] && [ "$1" = '--redis' ]; then
+  echo "running procfile including redis-server"
+  exec foreman start -f ProcfileWithRedis.dev
+else
+  echo "running default procfile"
+  exec foreman start -f Procfile.dev "$@"
+fi

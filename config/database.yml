@@ -1,25 +1,16 @@
-# MySQL. Versions 5.5.8 and up are supported.
-#
-# Install the MySQL driver
-#   gem install trilogy
-#
-# Ensure the MySQL gem is defined in your Gemfile
-#   gem "trilogy"
-#
-# And be sure to use new-style password hashing:
-#   https://dev.mysql.com/doc/refman/5.7/en/password-hashing.html
-#
+---
 default: &default
-  adapter: trilogy
-  encoding: utf8mb4
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: root
-  password:
-  host: localhost
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5 ) %>
+  host: <%= ENV.fetch('DB_HOST', '127.0.0.1') %>
 
 development:
   <<: *default
   database: dummbatz_development
+  username: <%= Rails.application.credentials.database[:username] %>
+  password: <%= Rails.application.credentials.database[:password] %>
+  port: <%= ENV['DOCKER_DEV_DB_PORT'].presence || 6660 %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -27,6 +18,9 @@ development:
 test:
   <<: *default
   database: dummbatz_test
+  username: <%= Rails.application.credentials.database[:username] %>
+  password: <%= Rails.application.credentials.database[:password] %>
+  port: <%= ENV['DOCKER_TEST_DB_PORT'].presence || 7770 %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -49,7 +43,12 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  <<: *default
+  adapter: mysql2
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   database: dummbatz_production
-  username: dummbatz
-  password: <%= ENV["DUMMBATZ_DATABASE_PASSWORD"] %>
+  host: localhost
+  port: 3306
+  username: <%= Rails.application.credentials.database[:username] %>
+  password: <%= Rails.application.credentials.database[:password] %>
