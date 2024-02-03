@@ -2,6 +2,7 @@
 ## A digital version of a card game
 
 * Ruby version --> [.ruby-version](./.ruby-version)
+* node version --> [.nvmrc](./.nvmrc)
 * System dependencies
     * yarn
     * ruby
