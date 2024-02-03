@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bin/bundle exec rubocop --force-exclusion --parallel "$@"

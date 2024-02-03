@@ -1,0 +1,12 @@
+#!/bin/bash
+
+bin_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd -P)"
+
+echo "preparing assets"
+RAILS_ENV=test "$bin_dir"/rails assets:precompile
+
+echo "running linters"
+"$bin_dir"/lint
+
+echo "running unit and system tests"
+RAILS_ENV=test "$bin_dir"/rails test "$bin_dir"/../test

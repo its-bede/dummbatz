@@ -1,0 +1,6 @@
+redis: redis-server
+web: env RUBY_DEBUG_OPEN=true bin/rails server -b 0.0.0.0
+css: yarn watch:css
+# admincss: yarn watch:css:admin
+js: yarn build --watch
+sidekiq: bundle exec sidekiq -e development -C config/sidekiq/development.yml

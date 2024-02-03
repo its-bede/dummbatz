@@ -1,0 +1,21 @@
+---
+require:
+  - rubocop-rails
+  - rubocop-capybara
+
+AllCops:
+  DisplayCopNames: true
+  Exclude:
+    - bin/**/*
+    - db/schema.rb
+    - db/seeds.rb
+    - node_modules/**/*
+    - log/**/*
+    - public/**/*
+    - storage/**/*
+    - tmp/**/*
+    - vendor/**/*
+    - samples/**/*
+    - lib/tasks/migration.rake
+  NewCops: enable
+  TargetRubyVersion: 3

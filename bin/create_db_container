@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# make sure rbenv is loaded
+if [ -d "${HOME}"/.rbenv ]; then
+  export PATH="${HOME}/.rbenv/shims:${PATH}"
+  eval "$(rbenv init -)"
+fi
+
+
+# general env vars are loaded via direnv: https://github.com/direnv/direnv
+dev_db_name="${APP_NAME}_development"
+DB_USER1=$(bin/rails runner -e development "puts Rails.application.credentials.database[:username]")
+DB_PASSWORD1=$(bin/rails runner -e development "puts Rails.application.credentials.database[:password]")
+test_db_name="${APP_NAME}_test"
+DB_USER2=$(bin/rails runner -e test "puts Rails.application.credentials.database[:username]")
+DB_PASSWORD2=$(bin/rails runner -e test "puts Rails.application.credentials.database[:password]")
+container_rdy_timeout=${CONTAINER_RDY_TIMEOUT:-30}
+
+# Zugangsdaten aus den Rails Credentials laden
+#DB_USER1=$(rails credentials:show postgres_database1 | jq -r .username)
+#DB_PASSWORD1=$(rails credentials:show postgres_database1 | jq -r .password)
+#
+#DB_USER2=$(rails credentials:show postgres_database2 | jq -r .username)
+#DB_PASSWORD2=$(rails credentials:show postgres_database2 | jq -r .password)
+
+# Delete container, if available
+docker-compose down
+
+# Datenbanken erstellen und Benutzer mit Rails-Anmeldeinformationen hinzufügen
+echo "Creating databases and users..."
+docker-compose up -d
+
+echo "Waiting for PostgreSQL to start..."
+sleep "$container_rdy_timeout" # Warten, bis PostgreSQL gestartet ist
+
+echo "Create DEV db, user and grant privileges..."
+docker exec -it dummbatz_postgres1 psql -U postgres -c "CREATE DATABASE $dev_db_name;"
+docker exec -it dummbatz_postgres1 psql -U postgres -d $dev_db_name -c "CREATE USER $DB_USER1 WITH ENCRYPTED PASSWORD '$DB_PASSWORD1' SUPERUSER;"
+docker exec -it dummbatz_postgres1 psql -U postgres -d $dev_db_name -c "GRANT ALL PRIVILEGES ON DATABASE $dev_db_name TO $DB_USER1;"
+docker exec -it dummbatz_postgres1 psql -U postgres -d $dev_db_name -c "GRANT USAGE, CREATE ON SCHEMA public TO $DB_USER1;"
+
+echo "Create TEST db, user and grant privileges..."
+docker exec -it dummbatz_postgres2 psql -U postgres -c "CREATE DATABASE $test_db_name;"
+docker exec -it dummbatz_postgres2 psql -U postgres -d $test_db_name -c "CREATE USER $DB_USER2 WITH ENCRYPTED PASSWORD '$DB_PASSWORD2' SUPERUSER;"
+docker exec -it dummbatz_postgres2 psql -U postgres -d $test_db_name -c "GRANT ALL PRIVILEGES ON DATABASE $test_db_name TO $DB_USER2;"
+docker exec -it dummbatz_postgres2 psql -U postgres -d $test_db_name -c "GRANT USAGE, CREATE ON SCHEMA public TO $DB_USER2;"

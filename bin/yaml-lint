@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# append directories or files you want to check
+bin/bundle exec yaml-lint config/locales
